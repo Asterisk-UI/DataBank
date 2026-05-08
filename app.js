@@ -337,6 +337,7 @@ function handleSignup() {
   };
 
   db.members.push(newMember);
+  saveDatabase();
 
   successElement.textContent  = `Account created! You can now sign in as ${firstName} ${lastName}.`;
   successElement.style.display = 'block';
@@ -1825,6 +1826,7 @@ function saveBook() {
     showToast('Book added!');
   }
 
+  saveDatabase();
   closeModal('book-modal');
   renderBooksPage();
 }
@@ -1851,6 +1853,7 @@ function deleteBook(bookId) {
   if (!confirm('Delete this book?')) return;
 
   db.books = db.books.filter(book => book.id !== bookId);
+  saveDatabase();
   showToast('Book deleted.', 'info');
   renderBooksPage();
 }
@@ -1889,6 +1892,7 @@ function saveMember() {
     showToast('Member added!');
   }
 
+  saveDatabase();
   closeModal('member-modal');
   renderMembersAdminPage();
 }
@@ -1915,6 +1919,7 @@ function toggleMemberActiveStatus(memberId) {
   if (!member) return;
 
   member.isActive = !member.isActive;
+  saveDatabase();
   showToast(member.isActive ? 'Member reactivated.' : 'Member deactivated.', 'info');
   renderMembersAdminPage();
 }
@@ -1941,6 +1946,7 @@ function saveLoan() {
     status:     'Active',
   });
 
+  saveDatabase();
   showToast('Loan created!');
   closeModal('loan-modal');
   renderLoansAdminPage();
@@ -1953,6 +1959,7 @@ function markLoanAsReturned(loanId) {
 
   loan.returnDate = getTodayDateString();
   loan.status     = 'Returned';
+  saveDatabase();
   showToast(`Loan #${loanId} returned.`);
   renderLoansAdminPage();
   renderDashboard();
@@ -1962,6 +1969,7 @@ function deleteLoan(loanId) {
   if (!confirm('Delete loan record?')) return;
 
   db.loans = db.loans.filter(loan => loan.id !== loanId);
+  saveDatabase();
   showToast('Loan deleted.', 'info');
   renderLoansAdminPage();
   renderDashboard();
@@ -1986,6 +1994,7 @@ function saveReservation() {
     status: 'Pending',
   });
 
+  saveDatabase();
   showToast('Reservation created!');
   closeModal('reservation-modal');
   renderReservationsPage();
@@ -1995,7 +2004,10 @@ function cancelReservation(reservationId) {
   const reservation = db.reservations.find(
     targetReservation => targetReservation.id === reservationId
   );
-  if (reservation) reservation.status = 'Cancelled';
+  if (reservation) {
+    reservation.status = 'Cancelled';
+    saveDatabase();
+  }
 
   showToast('Reservation cancelled.', 'info');
   renderReservationsPage();
@@ -2014,6 +2026,7 @@ function memberReserveBook(bookId) {
     status:           'Pending',
   });
 
+  saveDatabase();
   showToast("Book reserved! We'll hold it for 7 days.", 'success');
   renderMemberBrowsePage();
 }
@@ -2036,6 +2049,7 @@ function saveFine() {
     paidDate: null,
   });
 
+  saveDatabase();
   showToast('Fine added!');
   closeModal('fine-modal');
   renderFinesPage();
@@ -2046,6 +2060,7 @@ function markFineAsPaid(fineId) {
   if (fine) {
     fine.isPaid   = true;
     fine.paidDate = getTodayDateString();
+    saveDatabase();
   }
 
   showToast('Fine marked as paid.');
@@ -2082,6 +2097,7 @@ function saveStaff() {
     showToast('Staff added!');
   }
 
+  saveDatabase();
   closeModal('staff-modal');
   renderStaffPage();
 }
@@ -2105,6 +2121,7 @@ function deleteStaff(staffId) {
   if (!confirm('Remove this staff member?')) return;
 
   db.staff = db.staff.filter(staffMember => staffMember.id !== staffId);
+  saveDatabase();
   showToast('Staff removed.', 'info');
   renderStaffPage();
 }
@@ -2124,6 +2141,7 @@ function saveProfile() {
   getElement('sidebar-name').textContent   = `${member.firstName} ${member.lastName}`;
   getElement('sidebar-avatar').textContent = getInitials(member.firstName, member.lastName);
 
+  saveDatabase();
   showToast('Profile updated!');
   closeModal('profile-modal');
   renderMemberProfilePage();
@@ -2158,6 +2176,16 @@ function saveAuthor() {
     showToast('Author added!');
   }
 
+  saveDatabase();
   closeModal('author-modal');
+  renderAuthorsPage();
+}
+
+function deleteAuthor(authorId) {
+  if (!confirm('Remove this author?')) return;
+
+  db.authors = db.authors.filter(author => author.id !== authorId);
+  saveDatabase();
+  showToast('Author removed.', 'info');
   renderAuthorsPage();
 }

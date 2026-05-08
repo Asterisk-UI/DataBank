@@ -262,7 +262,7 @@ const bookAuthors = [
 ];
 
 /* ── DATABASE BUNDLE ── */
-const db = {
+let db = {
   nextAvailableId,
   categories,
   authors,
@@ -274,3 +274,25 @@ const db = {
   reservations,
   fines,
 };
+
+// Local storage initialization
+if (typeof localStorage !== 'undefined') {
+  const storedDb = localStorage.getItem('library_db');
+  if (storedDb) {
+    try {
+      db = JSON.parse(storedDb);
+    } catch (e) {
+      console.error('Failed to parse database from local storage', e);
+      localStorage.setItem('library_db', JSON.stringify(db));
+    }
+  } else {
+    localStorage.setItem('library_db', JSON.stringify(db));
+  }
+}
+
+// Global save function
+function saveDatabase() {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('library_db', JSON.stringify(db));
+  }
+}
