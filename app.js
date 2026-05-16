@@ -889,7 +889,13 @@ function evaluateCondition(row, condition) {
   const col    = cmpMatch[1].toLowerCase().replace(/.*\./, '');
   const op     = cmpMatch[2];
   const strVal = cmpMatch[3].trim().replace(/^'|'$/g,'');
-  const numVal = parseFloat(strVal);
+
+  // Normalise PostgreSQL boolean literals → 1/0 to match the mapped cache values
+  const normVal = strVal.toLowerCase() === 'true'  ? '1'
+                : strVal.toLowerCase() === 'false' ? '0'
+                : strVal;
+
+  const numVal = parseFloat(normVal);
   const rowNum = parseFloat(row[col]);
   if (!isNaN(numVal) && !isNaN(rowNum)) {
     switch(op) {
@@ -902,7 +908,7 @@ function evaluateCondition(row, condition) {
     }
   }
   const a = String(row[col] ?? '').toLowerCase();
-  const b = strVal.toLowerCase();
+  const b = normVal.toLowerCase();
   switch(op) {
     case '=':  return a === b;
     case '!=': case '<>': return a !== b;
@@ -984,7 +990,7 @@ function runSelect(sql) {
   // SELECT columns
   const selMatch = sql.match(/^SELECT\s+(.+?)\s+FROM/i);
   if (!selMatch) return { error: 'Cannot parse SELECT columns.' };
-  const rawCols = selMatch[1];
+  const rawCols = selMatch[1].replace(/^\s*DISTINCT\s+/i, '');
 
   let columns = [];
   if (rawCols.trim() === '*') {
@@ -995,21 +1001,26 @@ function runSelect(sql) {
     while ((cm = aggRe.exec(rawCols)) !== null) {
       if (cm[1]) {
         const fn = cm[1].toUpperCase(), colExpr = cm[2], alias = cm[3] || `${fn.toLowerCase()}_${colExpr}`;
-        const vals = (rows[0]?.__group || rows).map(r => resolveValue(r, colExpr)).filter(v => v !== null);
-        const result = fn === 'COUNT' ? (rows[0]?.__group || rows).length
-                     : fn === 'SUM'   ? vals.reduce((a,b)=>a+b,0)
-                     : fn === 'AVG'   ? vals.reduce((a,b)=>a+b,0)/(vals.length||1)
-                     : fn === 'MAX'   ? Math.max(...vals)
-                     : fn === 'MIN'   ? Math.min(...vals) : null;
-        rows = rows.map(r => ({ ...r, [alias]: result }));
+        rows = rows.map(r => {
+          const grp = r.__group || [r];
+          const vals = grp.map(gr => resolveValue(gr, colExpr)).filter(v => v !== null);
+          const result = fn === 'COUNT' ? grp.length
+                       : fn === 'SUM'   ? vals.reduce((a,b)=>a+b,0)
+                       : fn === 'AVG'   ? vals.reduce((a,b)=>a+b,0)/(vals.length||1)
+                       : fn === 'MAX'   ? Math.max(...vals)
+                       : fn === 'MIN'   ? Math.min(...vals) : null;
+          return { ...r, [alias]: result };
+        });
         columns.push(alias);
       } else if (cm[4]) {
         const alias = cm[5] || 'concat';
-        const args  = cm[4].replace(/CONCAT\(/i,'').replace(/\)$/,'').split(',')
-          .map(a => { a = a.trim(); return a.startsWith("'") ? a.slice(1,-1) : null; });
+        const concatInner = cm[4].replace(/CONCAT\s*\(/i,'').replace(/\)\s*$/,'');
         rows = rows.map(r => {
-          const parts = cm[4].replace(/CONCAT\(/i,'').replace(/\)$/,'').split(',')
-            .map(a => { a = a.trim(); return a.startsWith("'") ? a.slice(1,-1) : (r[a.toLowerCase().replace(/.*\./,'')] ?? ''); });
+          const parts = concatInner.split(',').map(a => {
+            a = a.trim();
+            if (a.startsWith("'") && a.endsWith("'")) return a.slice(1,-1);
+            return String(r[a.toLowerCase().replace(/.*\./,'')] ?? '');
+          });
           return { ...r, [alias]: parts.join('') };
         });
         columns.push(alias);
