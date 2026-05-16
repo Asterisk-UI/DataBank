@@ -620,9 +620,13 @@ function renderReservationsPage() {
         <td style="font-size:13px;color:var(--color-text-secondary)">${r.reservationDate}</td>
         <td style="font-size:13px;color:var(--color-text-secondary)">${r.expiryDate}</td>
         <td>${renderStatusBadge(r.status)}</td>
-        <td>${r.status === 'Pending'
-          ? `<button class="btn btn-danger btn-sm" onclick="cancelReservation(${r.id})">Cancel</button>`
-          : ''}</td>
+        <td>
+          ${r.status === 'Pending' ? `
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-success btn-sm" onclick="fulfillReservation(${r.id})">✓ Accept</button>
+              <button class="btn btn-danger btn-sm" onclick="cancelReservation(${r.id})">Cancel</button>
+            </div>` : ''}
+        </td>
       </tr>
     `;
   }).join('');
@@ -1485,6 +1489,19 @@ async function cancelReservation(reservationId) {
     renderReservationsPage();
   } catch(err) {
     showToast('Error cancelling reservation: ' + (err.message || err), 'error');
+  }
+}
+
+async function fulfillReservation(reservationId) {
+  const res = db.reservations.find(r => r.id === reservationId);
+  if (!res) return;
+  try {
+    await updateReservation(reservationId, { status: 'Fulfilled' });
+    res.status = 'Fulfilled';
+    showToast('Reservation accepted!', 'success');
+    renderReservationsPage();
+  } catch(err) {
+    showToast('Error accepting reservation: ' + (err.message || err), 'error');
   }
 }
 
