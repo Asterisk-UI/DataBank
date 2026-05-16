@@ -287,7 +287,7 @@
               <span class="table-card-title">All Members</span>
               <div class="table-search-box">
                 <span class="search-icon">⌕</span>
-                <input id="member-search-input" placeholder="Search name or email…" oninput="renderMembersPage()" />
+                <input id="member-search-input" placeholder="Search name or email…" oninput="renderMembersAdminPage()" />
               </div>
               <button class="btn btn-gold btn-sm" onclick="openModal('member-modal')">+ Add Member</button>
             </div>
@@ -308,9 +308,9 @@
               <span class="table-card-title">All Loans</span>
               <div class="table-search-box">
                 <span class="search-icon">⌕</span>
-                <input id="loan-search-input" placeholder="Search…" oninput="renderLoansPage()" />
+                <input id="loan-search-input" placeholder="Search…" oninput="renderLoansAdminPage()" />
               </div>
-              <select class="form-input" id="loan-status-filter" onchange="renderLoansPage()" style="width:140px;padding:8px 12px;font-size:13px">
+              <select class="form-input" id="loan-status-filter" onchange="renderLoansAdminPage()" style="width:140px;padding:8px 12px;font-size:13px">
                 <option value="">All Statuses</option>
                 <option value="Active">Active</option>
                 <option value="Overdue">Overdue</option>
