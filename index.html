@@ -884,7 +884,8 @@
 <!-- TOAST NOTIFICATION -->
 <div id="toast-notification" class="toast-notification"></div>
 
-<!-- SCRIPTS — order matters: database first, then app logic -->
+<!-- SCRIPTS — order matters: Supabase CDN → database → app -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="database.js"></script>
 <script src="app.js"></script>
 </body>
