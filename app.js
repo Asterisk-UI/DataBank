@@ -967,11 +967,11 @@ function runSelect(sql) {
   }
 
   // WHERE
-  const whereMatch = sql.match(/\bWHERE\b(.+?)(?:\bGROUP BY\b|\bORDER BY\b|\bLIMIT\b|;|$)/i);
+  const whereMatch = sql.match(/\bWHERE\b([\s\S]+?)(?:\bGROUP\s+BY\b|\bORDER\s+BY\b|\bLIMIT\b|;|$)/i);
   if (whereMatch) rows = rows.filter(r => evaluateWhere(r, whereMatch[1].trim()));
 
   // GROUP BY
-  const groupMatch = sql.match(/\bGROUP\s+BY\b(.+?)(?:\bORDER BY\b|\bLIMIT\b|;|$)/i);
+  const groupMatch = sql.match(/\bGROUP\s+BY\b([\s\S]+?)(?:\bORDER\s+BY\b|\bLIMIT\b|;|$)/i);
   if (groupMatch) {
     const groupCols = groupMatch[1].split(',').map(c => c.trim().toLowerCase().replace(/.*\./, ''));
     const groups = {};
@@ -987,10 +987,10 @@ function runSelect(sql) {
     });
   }
 
-  // SELECT columns
-  const selMatch = sql.match(/^SELECT\s+(.+?)\s+FROM/i);
+  // SELECT columns — use 's' (dotAll) flag so '.' matches newlines too
+  const selMatch = sql.match(/^SELECT\s+([\s\S]+?)\s+FROM\s/i);
   if (!selMatch) return { error: 'Cannot parse SELECT columns.' };
-  const rawCols = selMatch[1].replace(/^\s*DISTINCT\s+/i, '');
+  const rawCols = selMatch[1].replace(/^\s*DISTINCT\s+/i, '').trim();
 
   let columns = [];
   if (rawCols.trim() === '*') {
@@ -1045,7 +1045,7 @@ function runSelect(sql) {
   }
 
   // ORDER BY
-  const orderMatch = sql.match(/\bORDER\s+BY\b(.+?)(?:\bLIMIT\b|;|$)/i);
+  const orderMatch = sql.match(/\bORDER\s+BY\b([\s\S]+?)(?:\bLIMIT\b|;|$)/i);
   if (orderMatch) {
     const parts = orderMatch[1].split(',').map(p => {
       const [col, dir] = p.trim().split(/\s+/);
