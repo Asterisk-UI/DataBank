@@ -1081,7 +1081,9 @@ function runSqlQuery(uid) {
   if (!codeEl || !resultEl) return;
 
   const raw = codeEl.textContent.trim();
-  const sql = raw.replace(/;$/, '').trim();
+  // SQL_QUERY_SECTIONS stores newlines as literal \n (two chars: backslash + n).
+  // Normalise to real newlines so clause-boundary regexes work correctly.
+  const sql = raw.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/;$/, '').trim();
   resultEl.style.display = 'block';
 
   const upper = sql.toUpperCase().trimStart();
