@@ -251,7 +251,7 @@
               <span class="table-card-title">All Books</span>
               <div class="table-search-box">
                 <span class="search-icon">⌕</span>
-                <input id="book-search-input" placeholder="Search title or ISBN…" oninput="renderBooksTable()" />
+                <input id="book-search-input" placeholder="Search title or ISBN…" oninput="renderBooksPage()" />
               </div>
               <button class="btn btn-gold btn-sm" onclick="openModal('book-modal')">+ Add Book</button>
             </div>
@@ -287,7 +287,7 @@
               <span class="table-card-title">All Members</span>
               <div class="table-search-box">
                 <span class="search-icon">⌕</span>
-                <input id="member-search-input" placeholder="Search name or email…" oninput="renderMembersTable()" />
+                <input id="member-search-input" placeholder="Search name or email…" oninput="renderMembersPage()" />
               </div>
               <button class="btn btn-gold btn-sm" onclick="openModal('member-modal')">+ Add Member</button>
             </div>
@@ -308,9 +308,9 @@
               <span class="table-card-title">All Loans</span>
               <div class="table-search-box">
                 <span class="search-icon">⌕</span>
-                <input id="loan-search-input" placeholder="Search…" oninput="renderLoansTable()" />
+                <input id="loan-search-input" placeholder="Search…" oninput="renderLoansPage()" />
               </div>
-              <select class="form-input" id="loan-status-filter" onchange="renderLoansTable()" style="width:140px;padding:8px 12px;font-size:13px">
+              <select class="form-input" id="loan-status-filter" onchange="renderLoansPage()" style="width:140px;padding:8px 12px;font-size:13px">
                 <option value="">All Statuses</option>
                 <option value="Active">Active</option>
                 <option value="Overdue">Overdue</option>
@@ -495,9 +495,9 @@
               <span class="table-card-title">All Books</span>
               <div class="table-search-box">
                 <span class="search-icon">⌕</span>
-                <input id="browse-search-input" placeholder="Search title, author, ISBN…" oninput="renderBrowseCatalog()" />
+                <input id="browse-search-input" placeholder="Search title, author, ISBN…" oninput="renderMemberBrowsePage()" />
               </div>
-              <select class="form-input" id="browse-category-filter" onchange="renderBrowseCatalog()" style="width:150px;padding:8px 12px;font-size:13px">
+              <select class="form-input" id="browse-category-filter" onchange="renderMemberBrowsePage()" style="width:150px;padding:8px 12px;font-size:13px">
                 <option value="">All Categories</option>
               </select>
             </div>

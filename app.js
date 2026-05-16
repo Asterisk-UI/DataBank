@@ -657,7 +657,7 @@ function renderDashboard() {
 }
 
 function renderBooksPage() {
-  const searchQuery = (getElement('book-search')?.value || '').toLowerCase();
+  const searchQuery = (getElement('book-search-input')?.value || '').toLowerCase();
   const filteredBooks = db.books.filter(book =>
     !searchQuery ||
     book.title.toLowerCase().includes(searchQuery) ||
@@ -724,7 +724,7 @@ function renderAuthorsPage() {
 }
 
 function renderMembersAdminPage() {
-  const searchQuery = (getElement('member-search')?.value || '').toLowerCase();
+  const searchQuery = (getElement('member-search-input')?.value || '').toLowerCase();
   const filteredMembers = db.members.filter(member =>
     !searchQuery ||
     `${member.firstName} ${member.lastName} ${member.email}`.toLowerCase().includes(searchQuery)
@@ -766,7 +766,7 @@ function renderMembersAdminPage() {
 }
 
 function renderLoansAdminPage() {
-  const searchQuery = (getElement('loan-search')?.value || '').toLowerCase();
+  const searchQuery = (getElement('loan-search-input')?.value || '').toLowerCase();
   const filteredLoans = db.loans.filter(loan =>
     !searchQuery ||
     getMemberFullName(loan.memberId).toLowerCase().includes(searchQuery) ||
@@ -1669,7 +1669,7 @@ function renderMemberHomePage() {
 }
 
 function renderMemberBrowsePage() {
-  const searchQuery    = (getElement('browse-search')?.value || '').toLowerCase();
+  const searchQuery = (getElement('browse-search-input')?.value || '').toLowerCase();
   const filteredBooks  = db.books.filter(book =>
     !searchQuery ||
     book.title.toLowerCase().includes(searchQuery) ||
@@ -1815,57 +1815,57 @@ function renderMemberProfilePage() {
    CRUD — BOOKS
    ============================================================ */
 
-function saveBook() {
-  const bookId = parseInt(getElement('book-modal-id').value) || 0;
-
-  const bookData = {
-    isbn:        getElement('book-modal-isbn').value,
-    title:       getElement('book-modal-title').value,
-    categoryId:  parseInt(getElement('book-modal-category').value),
-    publisher:   getElement('book-modal-publisher').value,
-    publishYear: parseInt(getElement('book-modal-year').value),
-    edition:     parseInt(getElement('book-modal-edition').value)     || 1,
-    totalCopies: parseInt(getElement('book-modal-total-copies').value) || 1,
-    authorId:    parseInt(getElement('book-modal-author').value),
-  };
-
-  if (!bookData.title || !bookData.isbn) {
-    showToast('Title and ISBN are required.', 'error');
-    return;
+   function saveBook() {
+    const bookId = parseInt(getElement('book-modal-id').value) || 0;
+  
+    const bookData = {
+      isbn:        getElement('book-modal-isbn').value,
+      title:       getElement('book-modal-title-input').value,     // FIXED ID
+      categoryId:  parseInt(getElement('book-modal-category').value),
+      publisher:   getElement('book-modal-publisher').value,
+      publishYear: parseInt(getElement('book-modal-year').value),
+      edition:     parseInt(getElement('book-modal-edition').value) || 1,
+      totalCopies: parseInt(getElement('book-modal-copies').value)  || 1, // FIXED ID
+      authorId:    parseInt(getElement('book-modal-author').value),
+    };
+  
+    if (!bookData.title || !bookData.isbn) {
+      showToast('Title and ISBN are required.', 'error');
+      return;
+    }
+  
+    if (bookId) {
+      const existingBook = db.books.find(book => book.id === bookId);
+      if (existingBook) Object.assign(existingBook, bookData);
+      showToast('Book updated!');
+    } else {
+      bookData.id = db.nextAvailableId.books++;
+      db.books.push(bookData);
+      showToast('Book added!');
+    }
+  
+    saveDatabase();
+    closeModal('book-modal');
+    renderBooksPage();
   }
-
-  if (bookId) {
-    const existingBook = db.books.find(book => book.id === bookId);
-    if (existingBook) Object.assign(existingBook, bookData);
-    showToast('Book updated!');
-  } else {
-    bookData.id = db.nextAvailableId.books++;
-    db.books.push(bookData);
-    showToast('Book added!');
+  
+  function openEditBookModal(bookId) {
+    const book = db.books.find(targetBook => targetBook.id === bookId);
+    if (!book) return;
+  
+    getElement('book-modal-title').textContent     = 'Edit Book'; // FIXED ID
+    getElement('book-modal-id').value              = bookId;
+    openModal('book-modal');
+  
+    getElement('book-modal-isbn').value         = book.isbn;
+    getElement('book-modal-title-input').value  = book.title;     // FIXED ID
+    getElement('book-modal-category').value     = book.categoryId;
+    getElement('book-modal-publisher').value    = book.publisher   || '';
+    getElement('book-modal-year').value         = book.publishYear || '';
+    getElement('book-modal-edition').value      = book.edition;
+    getElement('book-modal-copies').value       = book.totalCopies; // FIXED ID
+    getElement('book-modal-author').value       = book.authorId    || '';
   }
-
-  saveDatabase();
-  closeModal('book-modal');
-  renderBooksPage();
-}
-
-function openEditBookModal(bookId) {
-  const book = db.books.find(targetBook => targetBook.id === bookId);
-  if (!book) return;
-
-  getElement('book-modal-title-heading').textContent     = 'Edit Book';
-  getElement('book-modal-id').value                      = bookId;
-  openModal('book-modal');
-
-  getElement('book-modal-isbn').value         = book.isbn;
-  getElement('book-modal-title').value        = book.title;
-  getElement('book-modal-category').value     = book.categoryId;
-  getElement('book-modal-publisher').value    = book.publisher   || '';
-  getElement('book-modal-year').value         = book.publishYear || '';
-  getElement('book-modal-edition').value      = book.edition;
-  getElement('book-modal-total-copies').value = book.totalCopies;
-  getElement('book-modal-author').value       = book.authorId    || '';
-}
 
 function deleteBook(bookId) {
   if (!confirm('Delete this book?')) return;
