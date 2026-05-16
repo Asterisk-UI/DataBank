@@ -1606,173 +1606,173 @@ function executeLocalSQL() {
    MEMBER RENDERS
    ============================================================ */
 
-function renderMemberHomePage() {
-  const member       = currentUser.member;
-  const memberLoans  = db.loans.filter(loan => loan.memberId === member.id);
-  const activeLoans  = memberLoans.filter(loan => ['Active', 'Overdue'].includes(loan.status));
-  const unpaidFines  = db.fines.filter(fine => {
-    const associatedLoan = db.loans.find(loan => loan.id === fine.loanId);
-    return associatedLoan && associatedLoan.memberId === member.id && !fine.isPaid;
-  });
-  const totalUnpaidAmount = unpaidFines.reduce((total, fine) => total + fine.amount, 0);
-
-  getElement('member-avatar-hero').textContent  = getInitials(member.firstName, member.lastName);
-  getElement('member-hero-name').textContent    = `Welcome, ${member.firstName}!`;
-  getElement('member-hero-info').textContent    = `${member.membershipType} Member · Expiry: ${member.expiryDate}`;
-  getElement('member-hero-type').textContent    = member.membershipType;
-  getElement('member-hero-status').textContent  = member.isActive ? 'Active' : 'Inactive';
-
-  getElement('member-stat-active-loans').textContent = activeLoans.length;
-  getElement('member-stat-total-loans').textContent  = memberLoans.length;
-  getElement('member-stat-fines').textContent        = `₱${totalUnpaidAmount.toFixed(0)}`;
-
-  const emptyLoansMessage = `
-    <tr><td colspan="3">
-      <div class="empty-state">
-        <div class="empty-state-icon">📖</div>
-        <p>No active loans</p>
-      </div>
-    </td></tr>
-  `;
-
-  getElement('member-current-loans').innerHTML = activeLoans.length
-    ? activeLoans.map(loan => `
-        <tr>
-          <td style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; font-size:13.5px">
-            ${getBookTitle(loan.bookId)}
-          </td>
-          <td style="font-size:13px; color:var(--color-text-secondary)">${loan.dueDate}</td>
-          <td>${renderStatusBadge(loan.status)}</td>
-        </tr>
-      `).join('')
-    : emptyLoansMessage;
-
-  const memberReservations = db.reservations.filter(reservation => reservation.memberId === member.id);
-  const emptyReservationsMessage = `
-    <tr><td colspan="3">
-      <div class="empty-state">
-        <div class="empty-state-icon">🔖</div>
-        <p>No reservations</p>
-      </div>
-    </td></tr>
-  `;
-
-  getElement('member-reservations').innerHTML = memberReservations.length
-    ? memberReservations.map(reservation => `
-        <tr>
-          <td style="font-size:13.5px; font-weight:500">${getBookTitle(reservation.bookId)}</td>
-          <td style="font-size:13px; color:var(--color-text-secondary)">${reservation.reservationDate}</td>
-          <td>${renderStatusBadge(reservation.status)}</td>
-        </tr>
-      `).join('')
-    : emptyReservationsMessage;
-}
-
-function renderMemberBrowsePage() {
-  const searchQuery = (getElement('browse-search-input')?.value || '').toLowerCase();
-  const filteredBooks  = db.books.filter(book =>
-    !searchQuery ||
-    book.title.toLowerCase().includes(searchQuery) ||
-    getAuthorFullName(book.authorId).toLowerCase().includes(searchQuery) ||
-    book.isbn.includes(searchQuery)
-  );
-
-  getElement('browse-tbody').innerHTML = filteredBooks.map(book => {
-    const category     = findCategoryById(book.categoryId);
-    const copiesOnLoan = db.loans.filter(
-      loan => (loan.status === 'Active' || loan.status === 'Overdue') && loan.bookId === book.id
-    ).length;
-    const availableCopies = Math.max(0, book.totalCopies - copiesOnLoan);
-    const alreadyReservedByCurrentMember = db.reservations.find(
-      reservation =>
-        reservation.bookId   === book.id &&
-        reservation.memberId === currentUser.member.id &&
-        reservation.status   === 'Pending'
-    );
-
-    return `
-      <tr>
-        <td style="font-weight:500">${book.title}</td>
-        <td style="font-size:13px">${getAuthorFullName(book.authorId)}</td>
-        <td>${category ? renderBadge(category.name, 'blue') : ''}</td>
-        <td style="font-size:13px; color:var(--color-text-secondary)">${book.publishYear}</td>
-        <td>
-          ${availableCopies > 0
-            ? renderBadge(`${availableCopies} available`, 'green')
-            : renderBadge('All borrowed', 'red')}
-        </td>
-        <td>
-          ${!alreadyReservedByCurrentMember
-            ? `<button class="btn btn-gold btn-sm" onclick="memberReserveBook(${book.id})">Reserve</button>`
-            : `<span style="font-size:12px; color:var(--color-amber)">Reserved</span>`}
-        </td>
-      </tr>
+   function renderMemberHomePage() {
+    const member       = currentUser.member;
+    const memberLoans  = db.loans.filter(loan => loan.memberId === member.id);
+    const activeLoans  = memberLoans.filter(loan => ['Active', 'Overdue'].includes(loan.status));
+    const unpaidFines  = db.fines.filter(fine => {
+      const associatedLoan = db.loans.find(loan => loan.id === fine.loanId);
+      return associatedLoan && associatedLoan.memberId === member.id && !fine.isPaid;
+    });
+    const totalUnpaidAmount = unpaidFines.reduce((total, fine) => total + fine.amount, 0);
+  
+    getElement('member-avatar-hero').textContent  = getInitials(member.firstName, member.lastName);
+    getElement('member-hero-name').textContent    = `Welcome, ${member.firstName}!`;
+    getElement('member-hero-info').textContent    = `${member.membershipType} Member · Expiry: ${member.expiryDate}`;
+    getElement('member-hero-type').textContent    = member.membershipType;
+    getElement('member-hero-status').textContent  = member.isActive ? 'Active' : 'Inactive';
+  
+    getElement('member-stat-active-loans').textContent = activeLoans.length;
+    getElement('member-stat-total-loans').textContent  = memberLoans.length;
+    getElement('member-stat-unpaid-fines').textContent = `₱${totalUnpaidAmount.toFixed(0)}`; // FIXED ID
+  
+    const emptyLoansMessage = `
+      <tr><td colspan="3">
+        <div class="empty-state">
+          <div class="empty-state-icon">📖</div>
+          <p>No active loans</p>
+        </div>
+      </td></tr>
     `;
-  }).join('');
-}
-
-function renderMemberHistoryPage() {
-  const member      = currentUser.member;
-  const memberLoans = db.loans.filter(loan => loan.memberId === member.id);
-
-  const emptyMessage = `
-    <tr><td colspan="5">
-      <div class="empty-state">
-        <div class="empty-state-icon">📋</div>
-        <p>No loan history yet</p>
-      </div>
-    </td></tr>
-  `;
-
-  getElement('member-history-tbody').innerHTML = memberLoans.length
-    ? memberLoans.map(loan => `
-        <tr>
-          <td style="font-weight:500; font-size:13.5px">${getBookTitle(loan.bookId)}</td>
-          <td style="font-size:13px; color:var(--color-text-secondary)">${loan.loanDate}</td>
-          <td style="font-size:13px; color:var(--color-text-secondary)">${loan.dueDate}</td>
-          <td style="font-size:13px; color:var(--color-text-muted)">${loan.returnDate || '—'}</td>
-          <td>${renderStatusBadge(loan.status)}</td>
-        </tr>
-      `).join('')
-    : emptyMessage;
-}
-
-function renderMemberFinesPage() {
-  const member       = currentUser.member;
-  const memberFines  = db.fines.filter(fine => {
-    const associatedLoan = db.loans.find(loan => loan.id === fine.loanId);
-    return associatedLoan && associatedLoan.memberId === member.id;
-  });
-
-  const emptyMessage = `
-    <tr><td colspan="4">
-      <div class="empty-state">
-        <div class="empty-state-icon">✓</div>
-        <p>No fines on your account</p>
-      </div>
-    </td></tr>
-  `;
-
-  getElement('member-fines-tbody').innerHTML = memberFines.length
-    ? memberFines.map(fine => {
-        const associatedLoan = db.loans.find(loan => loan.id === fine.loanId);
-        return `
+  
+    getElement('member-active-loans-table').innerHTML = activeLoans.length // FIXED ID
+      ? activeLoans.map(loan => `
           <tr>
-            <td style="font-weight:500; font-size:13.5px">
-              ${associatedLoan ? getBookTitle(associatedLoan.bookId) : '—'}
+            <td style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; font-size:13.5px">
+              ${getBookTitle(loan.bookId)}
             </td>
-            <td>
-              <span style="font-weight:700; color:${fine.isPaid ? 'var(--color-green)' : 'var(--color-red)'}">
-                ₱${fine.amount.toFixed(2)}
-              </span>
-            </td>
-            <td style="font-size:13px; color:var(--color-text-secondary)">${fine.reason}</td>
-            <td>${renderBadge(fine.isPaid ? 'Paid' : 'Unpaid', fine.isPaid ? 'green' : 'red')}</td>
+            <td style="font-size:13px; color:var(--color-text-secondary)">${loan.dueDate}</td>
+            <td>${renderStatusBadge(loan.status)}</td>
           </tr>
-        `;
-      }).join('')
-    : emptyMessage;
-}
+        `).join('')
+      : emptyLoansMessage;
+  
+    const memberReservations = db.reservations.filter(reservation => reservation.memberId === member.id);
+    const emptyReservationsMessage = `
+      <tr><td colspan="3">
+        <div class="empty-state">
+          <div class="empty-state-icon">🔖</div>
+          <p>No reservations</p>
+        </div>
+      </td></tr>
+    `;
+  
+    getElement('member-reservations-table').innerHTML = memberReservations.length // FIXED ID
+      ? memberReservations.map(reservation => `
+          <tr>
+            <td style="font-size:13.5px; font-weight:500">${getBookTitle(reservation.bookId)}</td>
+            <td style="font-size:13px; color:var(--color-text-secondary)">${reservation.reservationDate}</td>
+            <td>${renderStatusBadge(reservation.status)}</td>
+          </tr>
+        `).join('')
+      : emptyReservationsMessage;
+  }
+
+  function renderMemberBrowsePage() {
+    const searchQuery = (getElement('browse-search-input')?.value || '').toLowerCase();
+    const filteredBooks  = db.books.filter(book =>
+      !searchQuery ||
+      book.title.toLowerCase().includes(searchQuery) ||
+      getAuthorFullName(book.authorId).toLowerCase().includes(searchQuery) ||
+      book.isbn.includes(searchQuery)
+    );
+  
+    getElement('browse-catalog-table-body').innerHTML = filteredBooks.map(book => { // FIXED ID
+      const category     = findCategoryById(book.categoryId);
+      const copiesOnLoan = db.loans.filter(
+        loan => (loan.status === 'Active' || loan.status === 'Overdue') && loan.bookId === book.id
+      ).length;
+      const availableCopies = Math.max(0, book.totalCopies - copiesOnLoan);
+      const alreadyReservedByCurrentMember = db.reservations.find(
+        reservation =>
+          reservation.bookId   === book.id &&
+          reservation.memberId === currentUser.member.id &&
+          reservation.status   === 'Pending'
+      );
+  
+      return `
+        <tr>
+          <td style="font-weight:500">${book.title}</td>
+          <td style="font-size:13px">${getAuthorFullName(book.authorId)}</td>
+          <td>${category ? renderBadge(category.name, 'blue') : ''}</td>
+          <td style="font-size:13px; color:var(--color-text-secondary)">${book.publishYear}</td>
+          <td>
+            ${availableCopies > 0
+              ? renderBadge(`${availableCopies} available`, 'green')
+              : renderBadge('All borrowed', 'red')}
+          </td>
+          <td>
+            ${!alreadyReservedByCurrentMember
+              ? `<button class="btn btn-gold btn-sm" onclick="memberReserveBook(${book.id})">Reserve</button>`
+              : `<span style="font-size:12px; color:var(--color-amber)">Reserved</span>`}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderMemberHistoryPage() {
+    const member      = currentUser.member;
+    const memberLoans = db.loans.filter(loan => loan.memberId === member.id);
+  
+    const emptyMessage = `
+      <tr><td colspan="5">
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <p>No loan history yet</p>
+        </div>
+      </td></tr>
+    `;
+  
+    getElement('member-loan-history-table-body').innerHTML = memberLoans.length // FIXED ID
+      ? memberLoans.map(loan => `
+          <tr>
+            <td style="font-weight:500; font-size:13.5px">${getBookTitle(loan.bookId)}</td>
+            <td style="font-size:13px; color:var(--color-text-secondary)">${loan.loanDate}</td>
+            <td style="font-size:13px; color:var(--color-text-secondary)">${loan.dueDate}</td>
+            <td style="font-size:13px; color:var(--color-text-muted)">${loan.returnDate || '—'}</td>
+            <td>${renderStatusBadge(loan.status)}</td>
+          </tr>
+        `).join('')
+      : emptyMessage;
+  }
+  
+  function renderMemberFinesPage() {
+    const member       = currentUser.member;
+    const memberFines  = db.fines.filter(fine => {
+      const associatedLoan = db.loans.find(loan => loan.id === fine.loanId);
+      return associatedLoan && associatedLoan.memberId === member.id;
+    });
+  
+    const emptyMessage = `
+      <tr><td colspan="4">
+        <div class="empty-state">
+          <div class="empty-state-icon">✓</div>
+          <p>No fines on your account</p>
+        </div>
+      </td></tr>
+    `;
+  
+    getElement('member-fines-table-body').innerHTML = memberFines.length // FIXED ID
+      ? memberFines.map(fine => {
+          const associatedLoan = db.loans.find(loan => loan.id === fine.loanId);
+          return `
+            <tr>
+              <td style="font-weight:500; font-size:13.5px">
+                ${associatedLoan ? getBookTitle(associatedLoan.bookId) : '—'}
+              </td>
+              <td>
+                <span style="font-weight:700; color:${fine.isPaid ? 'var(--color-green)' : 'var(--color-red)'}">
+                  ₱${fine.amount.toFixed(2)}
+                </span>
+              </td>
+              <td style="font-size:13px; color:var(--color-text-secondary)">${fine.reason}</td>
+              <td>${renderBadge(fine.isPaid ? 'Paid' : 'Unpaid', fine.isPaid ? 'green' : 'red')}</td>
+            </tr>
+          `;
+        }).join('')
+      : emptyMessage;
+  }
 
 function renderMemberProfilePage() {
   const member = currentUser.member;
