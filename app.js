@@ -1,4 +1,22 @@
 /* ============================================================
+   AUTH SCREEN INITIALIZATION (TOP LEVEL)
+   ============================================================ */
+   window.onload = function() {
+    // Sets the number of books on the auth screen to match the database
+    if (getElement('auth-stat-books')) {
+      getElement('auth-stat-books').textContent = db.books.length;
+    }
+    
+    // Bonus: If you also want to populate the Members and Staff stats next to it!
+    if (getElement('auth-stat-members')) {
+      getElement('auth-stat-members').textContent = db.members.filter(m => m.isActive).length;
+    }
+    if (getElement('auth-stat-staff')) {
+      getElement('auth-stat-staff').textContent = db.staff.length;
+    }
+  };
+
+/* ============================================================
    app.js — DATA BANK — Library Management System
    Application logic: auth, navigation, rendering, CRUD
    Depends on: database.js (must be loaded first)
